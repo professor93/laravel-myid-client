@@ -9,7 +9,6 @@ class LaravelMyidClient
         private $client_id,
         private $grant_type,
         private $proxy,
-    )
-    {
+    ) {
     }
 }
