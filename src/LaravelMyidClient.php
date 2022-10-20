@@ -8,25 +8,30 @@ use Uzbek\LaravelMyidClient\Exceptions\MyIDNotAuthorizedException;
 class LaravelMyidClient
 {
     const AUTH_CODE_GRANT_TYPE = 'authorization_code';
+
     const PASSWORD_GRANT_TYPE = 'password';
 
     const CACHE_PREFIX = 'myid_';
-    const AUTH_CODE_TOKEN = self::CACHE_PREFIX . 'auth_code_token';
-    const PASSWORD_TOKEN = self::CACHE_PREFIX . 'password_token';
-    const AUTH_CODE_REF_TOKEN = self::CACHE_PREFIX . 'auth_code_refresh_token';
-    const PASSWORD_REF_TOKEN = self::CACHE_PREFIX . 'password_refresh_token';
+
+    const AUTH_CODE_TOKEN = self::CACHE_PREFIX.'auth_code_token';
+
+    const PASSWORD_TOKEN = self::CACHE_PREFIX.'password_token';
+
+    const AUTH_CODE_REF_TOKEN = self::CACHE_PREFIX.'auth_code_refresh_token';
+
+    const PASSWORD_REF_TOKEN = self::CACHE_PREFIX.'password_refresh_token';
 
     private ?string $auth_code_token = null;
+
     private ?string $password_token = null;
 
     public function __construct(
-        private readonly string  $base_url,
-        private readonly string  $client_id,
+        private readonly string $base_url,
+        private readonly string $client_id,
         private readonly ?string $client_secret = null,
         private readonly ?string $username = null,
         private readonly ?string $password = null,
-    )
-    {
+    ) {
     }
 
     /**
@@ -45,9 +50,9 @@ class LaravelMyidClient
 
     private function loginByAuthCode(string $auth_code): void
     {
-        if (cache()->has(self::AUTH_CODE_TOKEN . $auth_code)) {
+        if (cache()->has(self::AUTH_CODE_TOKEN.$auth_code)) {
             $this->auth_code_token = cache(self::AUTH_CODE_TOKEN);
-        } else if (cache()->has(self::AUTH_CODE_REF_TOKEN . $auth_code)) {
+        } elseif (cache()->has(self::AUTH_CODE_REF_TOKEN.$auth_code)) {
             $this->refreshToken();
         } else {
             // TODO: NOT FINISHED YET
