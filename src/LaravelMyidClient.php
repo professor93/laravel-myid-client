@@ -2,12 +2,12 @@
 
 namespace Uzbek\LaravelMyidClient;
 
+use Uzbek\LaravelMyidClient\Exceptions\MyIDNotAuthorizedException;
 use Uzbek\LaravelMyidClient\Model\MyIDCompareFace;
 use Uzbek\LaravelMyidClient\Model\MyIDInPlace;
 use Uzbek\LaravelMyidClient\Model\MyIDRedirect;
 use Uzbek\LaravelMyidClient\Model\MyIDSdk;
 use Uzbek\LaravelMyidClient\Model\MyIDWebsite;
-use Uzbek\LaravelMyidClient\Exceptions\MyIDNotAuthorizedException;
 
 class LaravelMyidClient extends Request
 {
