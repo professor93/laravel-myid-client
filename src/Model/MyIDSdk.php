@@ -2,8 +2,6 @@
 
 namespace Uzbek\LaravelMyidClient\Model;
 
-
-use Uzbek\LaravelMyidClient\LaravelMyidClient;
 use Uzbek\LaravelMyidClient\Request;
 
 class MyIDSdk extends Request
