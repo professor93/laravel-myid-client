@@ -10,5 +10,4 @@ namespace Uzbek\LaravelMyidClient\Exceptions;
 
 class Forbidden extends \Exception
 {
-
 }
