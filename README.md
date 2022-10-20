@@ -14,30 +14,22 @@ You can install the package via composer:
 composer require uzbek/laravel-myid-client
 ```
 
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag="laravel-myid-client-migrations"
-php artisan migrate
-```
-
 You can publish the config file with:
 
 ```bash
-php artisan vendor:publish --tag="laravel-myid-client-config"
+php artisan vendor:publish --tag="myid-client-config"
 ```
 
 This is the contents of the published config file:
 
 ```php
 return [
+    'base_url' => env('MYID_BASE_URL', 'base_url'),
+    'client_id' => env('MYID_CLIENT_ID', 'client_id'),
+    'client_secret' => env('MYID_CLIENT_SECRET', 'client_secret'),
+    'username' => env('MYID_USERNAME', 'username'),
+    'password' => env('MYID_PASSWORD', 'password'),
 ];
-```
-
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag="laravel-myid-client-views"
 ```
 
 ## Usage
