@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Http;
 use Uzbek\LaravelMyidClient\Exceptions\BadRequest;
 use Uzbek\LaravelMyidClient\Exceptions\Forbidden;
 
-abstract class Request
+class Request
 {
     private mixed $config;
 
@@ -22,13 +22,13 @@ abstract class Request
 
     const CACHE_PREFIX = 'myid_';
 
-    const AUTH_CODE_TOKEN = self::CACHE_PREFIX.'auth_code_token';
+    const AUTH_CODE_TOKEN = self::CACHE_PREFIX . 'auth_code_token';
 
-    const PASSWORD_TOKEN = self::CACHE_PREFIX.'password_token';
+    const PASSWORD_TOKEN = self::CACHE_PREFIX . 'password_token';
 
-    const AUTH_CODE_REF_TOKEN = self::CACHE_PREFIX.'auth_code_refresh_token';
+    const AUTH_CODE_REF_TOKEN = self::CACHE_PREFIX . 'auth_code_refresh_token';
 
-    const PASSWORD_REF_TOKEN = self::CACHE_PREFIX.'password_refresh_token';
+    const PASSWORD_REF_TOKEN = self::CACHE_PREFIX . 'password_refresh_token';
 
     protected ?string $auth_code_token = null;
 
@@ -47,7 +47,7 @@ abstract class Request
 
     public function sendRequest(string $method, string $url, array $data = [], array $headers = [])
     {
-        return Http::baseUrl($this->config['base_url'])
+        return Http::baseUrl($this->config['base_url'])->asForm()
             ->withHeaders($headers)->$method($url, $data)->throw(function ($response, $e) {
                 if ($response->status() === 400) {
                     throw new BadRequest('Invalid authorization code(Incorrect client_id, client_secret). Please try again.');
@@ -66,7 +66,7 @@ abstract class Request
             'code' => $auth_code,
             'client_id' => $this->config['client_id'],
             'client_secret' => $this->config['client_secret'],
-        ])->asForm();
+        ]);
 
         if ($request['access_token'] !== null && $request['refresh_token'] !== null) {
             $this->auth_code_token = $request['access_token'];
@@ -111,7 +111,7 @@ abstract class Request
     protected function refreshToken(string $auth_code)
     {
         $request = $this->sendRequest('post', 'oauth2/refresh-token', [
-            'refresh_token' => cache()->get(self::AUTH_CODE_REF_TOKEN.$auth_code),
+            'refresh_token' => cache()->get(self::AUTH_CODE_REF_TOKEN . $auth_code),
             'client_id' => $this->config['client_id'],
         ], ['Accept' => 'application/json']);
 
@@ -125,8 +125,8 @@ abstract class Request
 
     protected function putCacheAccessRefreshToken(string $access_token, string $refresh_token, string $auth_code, int $expires_in): void
     {
-        cache()->put(self::AUTH_CODE_TOKEN.$auth_code, $access_token, $expires_in - 10);
-        cache()->put(self::AUTH_CODE_REF_TOKEN.$auth_code, $refresh_token, $expires_in - 10);
+        cache()->put(self::AUTH_CODE_TOKEN . $auth_code, $access_token, $expires_in - 10);
+        cache()->put(self::AUTH_CODE_REF_TOKEN . $auth_code, $refresh_token, $expires_in - 10);
     }
 
     protected function putCachePasswordAccessRefreshToken(string $access_token, string $refresh_token, int $expires_in): void
@@ -137,9 +137,9 @@ abstract class Request
 
     protected function loginByAuthCode(string $auth_code): void
     {
-        if (cache()->has(self::AUTH_CODE_TOKEN.$auth_code)) {
-            $this->auth_code_token = cache()->get(self::AUTH_CODE_TOKEN.$auth_code);
-        } elseif (cache()->has(self::AUTH_CODE_REF_TOKEN.$auth_code)) {
+        if (cache()->has(self::AUTH_CODE_TOKEN . $auth_code)) {
+            $this->auth_code_token = cache()->get(self::AUTH_CODE_TOKEN . $auth_code);
+        } elseif (cache()->has(self::AUTH_CODE_REF_TOKEN . $auth_code)) {
             $this->refreshToken($auth_code);
         } else {
             $this->getAccessToken($auth_code);

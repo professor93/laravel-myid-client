@@ -22,6 +22,20 @@ class LaravelMyidClient extends Request
         return new MyIDSdk();
     }
 
+    public function me(string $auth_code)
+    {
+        $this->loginByAuthCode($auth_code);
+
+        if ($this->auth_code_token === null) {
+            throw new MyIDNotAuthorizedException;
+        }
+
+        return $this->sendRequest('get', 'users/me', [], [
+            'Authorization' => 'Bearer ' . $this->auth_code_token,
+            'Accept' => 'application/json',
+        ])['profile'];
+    }
+
     public function sdkExternal(string $external_id)
     {
         $this->loginByPassword();
@@ -52,4 +66,6 @@ class LaravelMyidClient extends Request
     {
         return new MyIDCompareFace();
     }
+
+
 }
