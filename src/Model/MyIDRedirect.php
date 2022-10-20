@@ -1,6 +1,6 @@
 <?php
 
-namespace Uzbek\LaravelMyidClient;
+namespace Uzbek\LaravelMyidClient\Model;
 
 class MyIDRedirect
 {

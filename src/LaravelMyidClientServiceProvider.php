@@ -9,9 +9,6 @@ class LaravelMyidClientServiceProvider extends PackageServiceProvider
 {
     public function configurePackage(Package $package): void
     {
-        /*
-         * This class is a Package Service Provider
-         */
         $package->name('laravel-myid-client')->hasConfigFile();
     }
 }
