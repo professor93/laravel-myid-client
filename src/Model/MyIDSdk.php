@@ -8,15 +8,14 @@ class MyIDSdk extends Request
 {
     public function __construct(
         protected ?string $external_id = null,
-    )
-    {
+    ) {
         parent::__construct();
     }
 
     public function me()
     {
         return $this->sendRequest('get', 'users/me', [], [
-            'Authorization' => 'Bearer ' . $this->auth_code_token,
+            'Authorization' => 'Bearer '.$this->auth_code_token,
             'Accept' => 'application/json',
         ])['profile'];
     }
@@ -27,7 +26,7 @@ class MyIDSdk extends Request
             'external_id' => $this->external_id,
             'client_id' => $this->client_id,
         ], [
-            'Authorization' => 'Bearer ' . $this->password_token,
+            'Authorization' => 'Bearer '.$this->password_token,
             'Accept' => 'application/json',
         ]);
     }

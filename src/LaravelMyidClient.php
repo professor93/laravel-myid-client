@@ -31,7 +31,7 @@ class LaravelMyidClient extends Request
         }
 
         return $this->sendRequest('get', 'users/me', [], [
-            'Authorization' => 'Bearer ' . $this->auth_code_token,
+            'Authorization' => 'Bearer '.$this->auth_code_token,
             'Accept' => 'application/json',
         ])['profile'];
     }
@@ -66,6 +66,4 @@ class LaravelMyidClient extends Request
     {
         return new MyIDCompareFace();
     }
-
-
 }
