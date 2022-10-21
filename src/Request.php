@@ -47,7 +47,12 @@ class Request
 
     public function sendRequest(string $method, string $url, array $data = [], array $headers = [])
     {
-        return Http::baseUrl($this->config['base_url'])->asForm()
+        $options = [];
+        $proxy_url = $config['proxy_url'] ?? (($config['proxy_proto'] ?? '') . '://' . ($config['proxy_host'] ?? '') . ':' . ($config['proxy_port'] ?? '')) ?? '';
+        if (is_string($proxy_url) && str_contains($proxy_url, '://') && strlen($proxy_url) > 12) {
+            $options['proxy'] = $proxy_url;
+        }
+        return Http::baseUrl($this->config['base_url'])->withOptions($options)->asForm()
             ->withHeaders($headers)->$method($url, $data)->throw(function ($response, $e) {
                 if ($response->status() === 400) {
                     throw new BadRequest('Invalid authorization code(Incorrect client_id, client_secret). Please try again.');
