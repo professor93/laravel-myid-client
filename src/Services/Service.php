@@ -16,8 +16,11 @@ use Uzbek\LaravelMyidClient\Exceptions\Forbidden;
 abstract class Service
 {
     protected mixed $config;
+
     protected string $client_id;
+
     protected string $client_secret;
+
     protected PendingRequest $client;
 
     public function __construct()
@@ -26,7 +29,7 @@ abstract class Service
         $this->client_id = $this->config['client_id'];
         $this->client_secret = $this->config['client_secret'];
 
-        $proxy_url = $config['proxy_url'] ?? (($config['proxy_proto'] ?? '') . '://' . ($config['proxy_host'] ?? '') . ':' . ($config['proxy_port'] ?? '')) ?? '';
+        $proxy_url = $config['proxy_url'] ?? (($config['proxy_proto'] ?? '').'://'.($config['proxy_host'] ?? '').':'.($config['proxy_port'] ?? '')) ?? '';
         $options = is_string($proxy_url) && str_contains($proxy_url, '://') && strlen($proxy_url) > 12 ? ['proxy' => $proxy_url] : [];
 
         $this->client = Http::baseUrl($this->config['base_url'])->withOptions($options);
@@ -36,7 +39,7 @@ abstract class Service
     {
         if ($res->status() === 400) {
             throw new BadRequest('Invalid authorization code(Incorrect client_id, client_secret). Please try again.');
-        } else if ($res->status() === 403) {
+        } elseif ($res->status() === 403) {
             throw new Forbidden('Could not validate credentials - access_token is expired or wrong.');
         } else {
             throw $e;
