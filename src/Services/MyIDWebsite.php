@@ -1,6 +1,6 @@
 <?php
 
-namespace Uzbek\LaravelMyidClient\Model;
+namespace Uzbek\LaravelMyidClient\Services;
 
 class MyIDWebsite
 {
