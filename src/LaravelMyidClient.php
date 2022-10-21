@@ -19,13 +19,13 @@ class LaravelMyidClient extends Service
 
     const CACHE_PREFIX = 'myid_';
 
-    const AUTH_CODE_TOKEN = self::CACHE_PREFIX.'auth_code_token';
+    const AUTH_CODE_TOKEN = self::CACHE_PREFIX . 'auth_code_token';
 
-    const PASSWORD_TOKEN = self::CACHE_PREFIX.'password_token';
+    const PASSWORD_TOKEN = self::CACHE_PREFIX . 'password_token';
 
-    const AUTH_CODE_REF_TOKEN = self::CACHE_PREFIX.'auth_code_refresh_token';
+    const AUTH_CODE_REF_TOKEN = self::CACHE_PREFIX . 'auth_code_refresh_token';
 
-    const PASSWORD_REF_TOKEN = self::CACHE_PREFIX.'password_refresh_token';
+    const PASSWORD_REF_TOKEN = self::CACHE_PREFIX . 'password_refresh_token';
 
     const TOKEN_REFRESH_URL = 'oauth2/refresh-token';
 
@@ -43,14 +43,25 @@ class LaravelMyidClient extends Service
             throw new MyIDNotAuthorizedException;
         }
 
-        return new MyIDSdk();
+        return new MyIDSdk($this->auth_code_token);
+    }
+
+    public function sdkExternal()
+    {
+        $this->loginByPassword();
+
+        if ($this->password_token === null) {
+            throw new MyIDNotAuthorizedException;
+        }
+
+        return new MyIDSdk($this->password_token);
     }
 
     protected function loginByAuthCode(string $auth_code): void
     {
-        if (cache()->has(self::AUTH_CODE_TOKEN.$auth_code)) {
-            $this->auth_code_token = cache()->get(self::AUTH_CODE_TOKEN.$auth_code);
-        } elseif (cache()->has(self::AUTH_CODE_REF_TOKEN.$auth_code)) {
+        if (cache()->has(self::AUTH_CODE_TOKEN . $auth_code)) {
+            $this->auth_code_token = cache()->get(self::AUTH_CODE_TOKEN . $auth_code);
+        } elseif (cache()->has(self::AUTH_CODE_REF_TOKEN . $auth_code)) {
             $this->refreshToken($auth_code);
         } else {
             $this->getAccessToken($auth_code);
@@ -59,45 +70,34 @@ class LaravelMyidClient extends Service
 
     protected function refreshToken(string $auth_code)
     {
-        $ref_cache_key = self::AUTH_CODE_REF_TOKEN.$auth_code;
-        throw_if(! cache()->has($ref_cache_key), new MyIDCacheNotExists());
+        $ref_cache_key = self::AUTH_CODE_REF_TOKEN . $auth_code;
+        throw_if(!cache()->has($ref_cache_key), new MyIDCacheNotExists());
 
-        $res = $this->client->asJson()->withToken($this->password_token)->post(self::TOKEN_REFRESH_URL, [
+        $res = $this->client->asJson()->post(self::TOKEN_REFRESH_URL, [
             'client_id' => $this->client_id,
             'refresh_token' => cache($ref_cache_key),
-        ])->throw(fn ($r, $e) => self::catchHttpRequestError($r, $e))->json();
+        ])->throw(fn($r, $e) => self::catchHttpRequestError($r, $e))->json();
 
         throw_if($res['access_token'] === null, new MyIDCacheNotExists());
 
         $this->auth_code_token = $res['access_token'];
-        cache()->put(self::AUTH_CODE_TOKEN.$auth_code, $res['access_token'], $res['expires_in'] - 10);
+        cache()->put(self::AUTH_CODE_TOKEN . $auth_code, $res['access_token'], $res['expires_in'] - 10);
     }
 
     protected function getAccessToken(string $auth_code)
     {
-        $res = $this->client->asJson()->withToken($this->password_token)->post(self::ACCESS_TOKEN_URL, [
+        $res = $this->client->asForm()->post(self::ACCESS_TOKEN_URL, [
             'grant_type' => self::AUTH_CODE_GRANT_TYPE,
             'code' => $auth_code,
             'client_id' => $this->client_id,
             'client_secret' => $this->client_secret,
-        ])->throw(fn ($r, $e) => self::catchHttpRequestError($r, $e))->json();
+        ])->throw(fn($r, $e) => self::catchHttpRequestError($r, $e))->json();
 
         throw_if($res['access_token'] === null, new MyIDCacheNotExists());
 
         $this->auth_code_token = $res['access_token'];
-        cache()->put(self::AUTH_CODE_TOKEN.$auth_code, $res['access_token'], $res['expires_in'] - 10);
-        cache()->put(self::AUTH_CODE_REF_TOKEN.$auth_code, $res['refresh_token'], $res['expires_in'] - 10);
-    }
-
-    public function sdkExternal(string $external_id)
-    {
-        $this->loginByPassword();
-
-        if ($this->password_token === null) {
-            throw new MyIDNotAuthorizedException;
-        }
-
-        return new MyIDSdk($external_id);
+        cache()->put(self::AUTH_CODE_TOKEN . $auth_code, $res['access_token'], $res['expires_in'] - 10);
+        cache()->put(self::AUTH_CODE_REF_TOKEN . $auth_code, $res['refresh_token'], $res['expires_in'] - 10);
     }
 
     protected function loginByPassword(): void
@@ -113,40 +113,34 @@ class LaravelMyidClient extends Service
 
     protected function refreshPasswordToken()
     {
-        $request = $this->sendRequest('post', 'oauth2/access-token', [
-            'refresh_token' => cache()->get(self::PASSWORD_REF_TOKEN),
-            'client_id' => $this->config['client_id'],
-        ], ['Accept' => 'application/json']);
+        $ref_cache_key = self::PASSWORD_REF_TOKEN;
+        throw_if(!cache()->has($ref_cache_key), new MyIDCacheNotExists());
 
-        if ($request['access_token'] !== null && $request['refresh_token'] !== null) {
-            $this->password_token = $request['access_token'];
-            $this->putCachePasswordAccessRefreshToken($request['access_token'], $request['refresh_token'], $request['expires_in']);
-        }
+        $res = $this->client->asJson()->post(self::TOKEN_REFRESH_URL, [
+            'client_id' => $this->client_id,
+            'refresh_token' => cache($ref_cache_key),
+        ])->throw(fn($r, $e) => self::catchHttpRequestError($r, $e))->json();
 
-        return $request;
-    }
+        throw_if($res['access_token'] === null, new MyIDCacheNotExists());
 
-    protected function putCachePasswordAccessRefreshToken(string $access_token, string $refresh_token, int $expires_in): void
-    {
-        cache()->put(self::PASSWORD_TOKEN, $access_token, $expires_in - 10);
-        cache()->put(self::PASSWORD_REF_TOKEN, $refresh_token, $expires_in - 10);
+        $this->auth_code_token = $res['access_token'];
+        cache()->put(self::PASSWORD_TOKEN, $res['access_token'], $res['expires_in'] - 10);
     }
 
     protected function getPasswordToken()
     {
-        $request = $this->sendRequest('post', 'oauth2/access-token', [
+        $res = $this->client->asForm()->post(self::ACCESS_TOKEN_URL, [
             'grant_type' => self::PASSWORD_GRANT_TYPE,
-            'username' => $this->config['username'],
-            'password' => $this->config['password'],
-            'client_id' => $this->config['client_id'],
-        ])->asForm();
+            'client_id' => $this->client_id,
+            'username' => $this->username,
+            'password' => $this->password
+        ])->throw(fn($r, $e) => self::catchHttpRequestError($r, $e))->json();
 
-        if ($request['access_token'] !== null && $request['refresh_token'] !== null) {
-            $this->password_token = $request['access_token'];
-            $this->putCachePasswordAccessRefreshToken($request['access_token'], $request['refresh_token'], $request['expires_in']);
-        }
+        throw_if($res['access_token'] === null, new MyIDCacheNotExists());
 
-        return $request;
+        $this->auth_code_token = $res['access_token'];
+        cache()->put(self::PASSWORD_TOKEN, $res['access_token'], $res['expires_in'] - 10);
+        cache()->put(self::PASSWORD_REF_TOKEN, $res['refresh_token'], $res['expires_in'] - 10);
     }
 
     public function inPlace(): MyIDInPlace

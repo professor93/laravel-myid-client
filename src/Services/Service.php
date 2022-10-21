@@ -21,6 +21,9 @@ abstract class Service
 
     protected string $client_secret;
 
+    protected string $username;
+    protected string $password;
+
     protected PendingRequest $client;
 
     public function __construct()
@@ -28,6 +31,8 @@ abstract class Service
         $this->config = config('myid-client');
         $this->client_id = $this->config['client_id'];
         $this->client_secret = $this->config['client_secret'];
+        $this->username = $this->config['username'];
+        $this->password = $this->config['password'];
 
         $proxy_url = $config['proxy_url'] ?? (($config['proxy_proto'] ?? '').'://'.($config['proxy_host'] ?? '').':'.($config['proxy_port'] ?? '')) ?? '';
         $options = is_string($proxy_url) && str_contains($proxy_url, '://') && strlen($proxy_url) > 12 ? ['proxy' => $proxy_url] : [];
