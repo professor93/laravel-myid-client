@@ -34,7 +34,7 @@ abstract class Service
         $this->username = $this->config['username'];
         $this->password = $this->config['password'];
 
-        $proxy_url = $config['proxy_url'] ?? (($config['proxy_proto'] ?? '').'://'.($config['proxy_host'] ?? '').':'.($config['proxy_port'] ?? '')) ?? '';
+        $proxy_url = $this->config['proxy_url'] ?? (($this->config['proxy_proto'] ?? '') . '://' . ($this->config['proxy_host'] ?? '') . ':' . ($this->config['proxy_port'] ?? '')) ?? '';
         $options = is_string($proxy_url) && str_contains($proxy_url, '://') && strlen($proxy_url) > 12 ? ['proxy' => $proxy_url] : [];
 
         $this->client = Http::baseUrl($this->config['base_url'])->withOptions($options);
