@@ -22,6 +22,7 @@ abstract class Service
     protected string $client_secret;
 
     protected string $username;
+
     protected string $password;
 
     protected PendingRequest $client;
